@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      background: url('./image/魔法森林.webp')no-repeat center center/cover;
+    }
+
+    .card {
+      width: 60px;
+      height: 90px;
+      position: relative;
+      float: left;
+      margin: 10px;
+      /* 設定子元素在 3D 空間內 */
+      transform-style: preserve-3d;
+      transition: transform 1s;
+    }
+
+    .card-front {
+      width: 100%;
+      height: 100%;
+      background-image: url('./image/1H.jpg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: absolute;
+      transform: rotateY(180deg);
+      /* 翻過來後隱藏另一面 */
+      backface-visibility: hidden;
+    }
+
+    .card-back {
+      width: 100%;
+      height: 100%;
+      background-image: url('./image/卡背.jpg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: absolute;
+      backface-visibility: hidden;
+    }
+
+    .card-open {
+      transform: rotateY(180deg);
+    }
+
+    #game {
+      width: 350px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game"></div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+  <script>
+    // 產生卡片
+    for (let i = 0; i < 16; i++) {
+      $('#game').append(`
+        <div class="card">
+          <div class="card-front"></div>
+          <div class="card-back"></div>
+        </div>
+      `)
+    }
+    for (let i = 0; i < 16; i++) {
+      // 決定數字
+      const num = i % 8 + 1
+      $('.card').eq(i).find('.card-front').css('background-image', `url(./image/${num}H.gif)`)
+      $('.card').eq(i).attr('data-card', num)
+
+      // 打散
+      const target = Math.round(Math.random() * 15)
+      $('.card').eq(target).insertAfter($('.card').eq(i))
+    }
+
+    $('#game').on('click', '.card', function () {
+      // 最多一次翻兩張，且這張牌還沒翻開
+      if ($('.card-open').length < 2 && !$(this).hasClass('card-open')) {
+        $(this).addClass('card-open')
+      }
+
+      // 如果翻開兩張了
+      if ($('.card-open').length === 2) {
+        // 如果數字一樣
+        if ($('.card-open').eq(0).attr('data-card') === $('.card-open').eq(1).attr('data-card')) {
+          // 用 class 標記已完成
+          $('.card-open').addClass('card-ok')
+          // 將 .card-front 淡出，如果對 .card-open 淡出會把 3D 壓平只看到卡背
+          $('.card-open .card-front').fadeTo(1000, 0)
+        }
+
+        // 不管是否一樣都將卡片翻回
+        setTimeout(function () {
+          // 如果 .card-open 裡的 .card-front 透明度不是 1，把 .card-open 透明度設為 0
+          $('.card-open').each(function () {
+            if ($(this).find('.card-front').css('opacity') !== '1') {
+              $(this).css('opacity', 0)
+            }
+          })
+          $('.card-open').removeClass('card-open')
+          if ($('.card-ok').length === 16) {
+            swal.fire({
+              title: '恭喜過關'
+            })
+          }
+        }, 1000)
+      }
+    })
+  </script>
+</body>
+
+</html>
